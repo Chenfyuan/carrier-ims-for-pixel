@@ -14,8 +14,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Chenfyuan/carrier-ims-for-pixel/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Chenfyuan/carrier-ims-for-pixel"></a>
-  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/Chenfyuan/carrier-ims-for-pixel"></a>
+  <a href="https://github.com/Chenfyuan/pixel-ims/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Chenfyuan/pixel-ims"></a>
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/Chenfyuan/pixel-ims"></a>
   <img alt="Platform" src="https://img.shields.io/badge/Platform-Android%2013%2B-3DDC84">
   <img alt="Device" src="https://img.shields.io/badge/Device-Pixel%20Tensor-blue">
   <img alt="Permission" src="https://img.shields.io/badge/Requires-Shizuku-orange">
@@ -47,7 +47,7 @@
 
 ## 快速开始
 
-1. 从 [Releases](https://github.com/Chenfyuan/carrier-ims-for-pixel/releases) 下载并安装 APK  
+1. 从 [Releases](https://github.com/Chenfyuan/pixel-ims/releases) 下载并安装 APK  
 2. 安装并启动 [Shizuku](https://shizuku.rikka.app/zh-hans/)  
 3. 打开 App，授权 Shizuku  
 4. 选择 SIM，按需开启功能开关  

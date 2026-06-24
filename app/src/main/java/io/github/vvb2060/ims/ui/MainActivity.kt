@@ -148,10 +148,10 @@ import java.util.Locale
 
 private const val COUNTRY_ISO_OPTION_DEFAULT = "__default__"
 private const val COUNTRY_ISO_OPTION_OTHER = "__other__"
-private const val REPO_URL = "https://github.com/Chenfyuan/carrier-ims-for-pixel"
-private const val REPO_ISSUE_URL = "https://github.com/Chenfyuan/carrier-ims-for-pixel/issues/new"
+private const val REPO_URL = "https://github.com/Chenfyuan/pixel-ims"
+private const val REPO_ISSUE_URL = "https://github.com/Chenfyuan/pixel-ims/issues/new"
 private const val REPO_OWNER = "Chenfyuan"
-private const val REPO_NAME = "carrier-ims-for-pixel"
+private const val REPO_NAME = "pixel-ims"
 private const val LEGACY_REPO_NAME = "carrier-ims-for-pixel"
 private val RELEASES_LATEST_API_URLS = listOf(
     "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/latest",

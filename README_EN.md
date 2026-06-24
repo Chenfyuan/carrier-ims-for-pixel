@@ -14,8 +14,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Chenfyuan/carrier-ims-for-pixel/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Chenfyuan/carrier-ims-for-pixel"></a>
-  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/Chenfyuan/carrier-ims-for-pixel"></a>
+  <a href="https://github.com/Chenfyuan/pixel-ims/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Chenfyuan/pixel-ims"></a>
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/Chenfyuan/pixel-ims"></a>
   <img alt="Platform" src="https://img.shields.io/badge/Platform-Android%2013%2B-3DDC84">
   <img alt="Device" src="https://img.shields.io/badge/Device-Pixel%20Tensor-blue">
   <img alt="Permission" src="https://img.shields.io/badge/Requires-Shizuku-orange">
@@ -47,7 +47,7 @@ A personal maintenance fork based on [ryfineZ/carrier-ims-for-pixel](https://git
 
 ## Quick Start
 
-1. Download APK from [Releases](https://github.com/Chenfyuan/carrier-ims-for-pixel/releases)
+1. Download APK from [Releases](https://github.com/Chenfyuan/pixel-ims/releases)
 2. Install and start [Shizuku](https://shizuku.rikka.app/)
 3. Open app and grant Shizuku permission
 4. Select SIM and toggle required features
