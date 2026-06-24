@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Carrier IMS</string>
+    <string name="app_name">Pixel IMS</string>
     <string name="for_pixel">forked by Mystery0</string>
-    <string name="brand_name">Carrier IMS for Pixel</string>
+    <string name="brand_name">Pixel IMS</string>
     <string name="brand_subtitle">基于 TurboIMS · 运营商与 IMS 工具集</string>
-    <string name="tab_ims">IMS</string>
-    <string name="tab_extra">附加</string>
-    <string name="tab_support">支持</string>
-    <string name="tab_cooperation">合作</string>
+    <string name="tab_tools">工具</string>
     <string name="tab_about">关于</string>
     <string name="action_open">打开</string>
     <string name="action_close">关闭</string>
@@ -36,6 +33,9 @@
 
     <!-- Features -->
     <string name="features_config">功能开关实时生效</string>
+    <string name="feature_group_ims">IMS 能力</string>
+    <string name="feature_group_network_display">网络显示</string>
+    <string name="feature_group_compat">兼容修复</string>
     <string name="tools">工具</string>
     <string name="refresh_short">刷新</string>
     <string name="action_sync_short">同步</string>
@@ -109,7 +109,6 @@
     <string name="captive_portal_fix_failed">网络修复失败：%s</string>
     <string name="captive_portal_restore_success">已恢复系统默认验证地址</string>
     <string name="captive_portal_restore_failed">恢复默认失败：%s</string>
-    <string name="donation_action">支持作者</string>
     <string name="volte">VoLTE（4G 语音）</string>
     <string name="volte_desc">启用4G语音通话（需运营商支持）</string>
     <string name="vowifi">VoWiFi（WiFi 通话）</string>
@@ -183,56 +182,6 @@
     <string name="config_backup_mismatch_title">SIM 信息不一致</string>
     <string name="config_backup_mismatch_message">备份：%1$s\n当前：%2$s\n确认要恢复到当前 SIM 吗？</string>
     <string name="config_backup_restore_anyway">继续恢复</string>
-    <string name="support_message_title">留言支持作者</string>
-    <string name="support_name_label">昵称</string>
-    <string name="support_message_label">想说的话</string>
-    <string name="support_amount_label">金额</string>
-    <string name="support_go_pay">去支持</string>
-    <string name="support_pay_alipay">支付宝支持</string>
-    <string name="support_pay_wechat">微信支持</string>
-    <string name="support_payment_not_configured">暂未开放打赏入口</string>
-    <string name="support_amount_required">请填写金额</string>
-    <string name="support_amount_invalid">请输入有效金额</string>
-    <string name="support_payment_open_failed">无法打开打赏页面</string>
-    <string name="support_payment_page_title">支持 Carrier IMS</string>
-    <string name="support_payment_page_desc">感谢支持项目持续维护。</string>
-    <string name="support_payment_subject">Carrier IMS 项目支持</string>
-    <string name="support_payment_button">去支付</string>
-    <string name="support_payment_return_app">返回 App</string>
-    <string name="support_ad_free_hint">单笔满 100 元可去广告。</string>
-    <string name="support_ad_free_enabled">本机已去除广告。</string>
-    <string name="support_ad_free_verified">已去除广告。</string>
-    <string name="support_ad_free_verify_failed">未能验证去广告状态。</string>
-    <string name="support_records_title">打赏记录</string>
-    <string name="support_records_dodopay_note">留言和付款记录由 DoDoPay 保存，App 不保存支付数据。</string>
-    <string name="support_records_loading">正在读取记录...</string>
-    <string name="support_records_load_failed">记录读取失败，稍后再试。</string>
-    <string name="support_records_empty">还没有打赏记录。</string>
-    <string name="support_records_anonymous">匿名用户</string>
-    <string name="support_records_no_message">没有留言</string>
-    <string name="business_contact_title">商务合作</string>
-    <string name="business_contact_desc">留下联系方式和合作需求</string>
-    <string name="business_contact_default">合作联系：GitHub Issue</string>
-    <string name="business_contact_action">联系合作</string>
-    <string name="business_name_label">称呼</string>
-    <string name="business_contact_label">联系方式</string>
-    <string name="business_type_label">合作类型</string>
-    <string name="business_type_ads">广告合作</string>
-    <string name="business_type_development">项目开发合作</string>
-    <string name="business_type_token_supply">Token 批发供应</string>
-    <string name="business_type_other">其他</string>
-    <string name="business_message_label">合作需求</string>
-    <string name="business_intent_submit">发送</string>
-    <string name="business_intent_submitting">发送中…</string>
-    <string name="business_intent_success">已发送</string>
-    <string name="business_intent_failed">发送失败：%s</string>
-    <string name="business_intent_not_configured">暂未配置商务合作入口</string>
-    <string name="business_contact_required">请填写联系方式</string>
-    <string name="business_message_required">请填写合作需求</string>
-    <string name="ads_service_not_configured">暂未配置合作内容</string>
-    <string name="ad_image_loading">广告图片加载中…</string>
-    <string name="ad_image_failed">广告图片加载失败</string>
-    <string name="home_ad_disclosure">开源项目要长期维护，这条广告会支持 Carrier IMS 继续更新。感谢理解。</string>
 
     <!-- Button -->
     <string name="apply_config">应用</string>

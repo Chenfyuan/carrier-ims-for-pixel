@@ -1,13 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Carrier IMS</string>
+    <string name="app_name">Pixel IMS</string>
     <string name="for_pixel">forked by Mystery0</string>
-    <string name="brand_name">Carrier IMS for Pixel</string>
+    <string name="brand_name">Pixel IMS</string>
     <string name="brand_subtitle">TurboIMS Fork · Carrier and IMS Toolkit</string>
-    <string name="tab_ims">IMS</string>
-    <string name="tab_extra">Extra</string>
-    <string name="tab_support">Support</string>
-    <string name="tab_cooperation">Partners</string>
+    <string name="tab_tools">Tools</string>
     <string name="tab_about">About</string>
     <string name="action_open">Open</string>
     <string name="action_close">Close</string>
@@ -36,6 +33,9 @@
 
     <!-- Features -->
     <string name="features_config">Features for this apply</string>
+    <string name="feature_group_ims">IMS Features</string>
+    <string name="feature_group_network_display">Network Display</string>
+    <string name="feature_group_compat">Compatibility Fix</string>
     <string name="tools">Tools</string>
     <string name="refresh_short">Refresh</string>
     <string name="action_sync_short">Sync</string>
@@ -109,7 +109,6 @@
     <string name="captive_portal_fix_failed">Network fix failed: %s</string>
     <string name="captive_portal_restore_success">System default verification URLs restored</string>
     <string name="captive_portal_restore_failed">Restore default failed: %s</string>
-    <string name="donation_action">Support Author</string>
     <string name="volte">VoLTE (4G Voice)</string>
     <string name="volte_desc">Enable 4G voice calls (carrier support required)</string>
     <string name="vowifi">VoWiFi (WiFi Calling)</string>
@@ -183,56 +182,6 @@
     <string name="config_backup_mismatch_title">SIM info differs</string>
     <string name="config_backup_mismatch_message">Backup: %1$s\nCurrent: %2$s\nRestore to the current SIM?</string>
     <string name="config_backup_restore_anyway">Restore Anyway</string>
-    <string name="support_message_title">Leave a Message</string>
-    <string name="support_name_label">Name</string>
-    <string name="support_message_label">Message</string>
-    <string name="support_amount_label">Amount</string>
-    <string name="support_go_pay">Support</string>
-    <string name="support_pay_alipay">Alipay</string>
-    <string name="support_pay_wechat">WeChat Pay</string>
-    <string name="support_payment_not_configured">Support payment is not open yet.</string>
-    <string name="support_amount_required">Amount is required.</string>
-    <string name="support_amount_invalid">Enter a valid amount.</string>
-    <string name="support_payment_open_failed">Failed to open support payment.</string>
-    <string name="support_payment_page_title">Support Carrier IMS</string>
-    <string name="support_payment_page_desc">Thank you for supporting ongoing maintenance.</string>
-    <string name="support_payment_subject">Carrier IMS Project Support</string>
-    <string name="support_payment_button">Pay</string>
-    <string name="support_payment_return_app">Return to App</string>
-    <string name="support_ad_free_hint">Donate ¥100 or more once to remove ads.</string>
-    <string name="support_ad_free_enabled">Ads removed on this device.</string>
-    <string name="support_ad_free_verified">Ads removed.</string>
-    <string name="support_ad_free_verify_failed">Could not verify ad-free status.</string>
-    <string name="support_records_title">Donation Records</string>
-    <string name="support_records_dodopay_note">Support messages and payment records are kept in DoDoPay. This app does not store payment data.</string>
-    <string name="support_records_loading">Loading records...</string>
-    <string name="support_records_load_failed">Could not load records. Try again later.</string>
-    <string name="support_records_empty">No donations yet.</string>
-    <string name="support_records_anonymous">Anonymous</string>
-    <string name="support_records_no_message">No message</string>
-    <string name="business_contact_title">Business Contact</string>
-    <string name="business_contact_desc">Leave your contact and cooperation request.</string>
-    <string name="business_contact_default">Business contact: GitHub Issue</string>
-    <string name="business_contact_action">Contact</string>
-    <string name="business_name_label">Name</string>
-    <string name="business_contact_label">Contact</string>
-    <string name="business_type_label">Type</string>
-    <string name="business_type_ads">Ad cooperation</string>
-    <string name="business_type_development">Project development</string>
-    <string name="business_type_token_supply">Token supply</string>
-    <string name="business_type_other">Other</string>
-    <string name="business_message_label">Request</string>
-    <string name="business_intent_submit">Send</string>
-    <string name="business_intent_submitting">Sending…</string>
-    <string name="business_intent_success">Sent</string>
-    <string name="business_intent_failed">Send failed: %s</string>
-    <string name="business_intent_not_configured">Business contact is not configured.</string>
-    <string name="business_contact_required">Contact is required.</string>
-    <string name="business_message_required">Request is required.</string>
-    <string name="ads_service_not_configured">Ad service is not configured.</string>
-    <string name="ad_image_loading">Loading ad image…</string>
-    <string name="ad_image_failed">Ad image failed to load</string>
-    <string name="home_ad_disclosure">Ad revenue helps keep Carrier IMS maintained. Thanks for understanding.</string>
 
     <!-- Button -->
     <string name="apply_config">Apply</string>

@@ -1,7 +1,7 @@
-# Carrier IMS for Pixel (TurboIMS)
+# Pixel IMS
 
 <p align="center">
-  <img src="app/src/main/ic_launcher-playstore.png" width="128" alt="Carrier IMS logo" />
+  <img src="app/src/main/ic_launcher-playstore.png" width="128" alt="Pixel IMS logo" />
 </p>
 
 <p align="center">
@@ -14,34 +14,16 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/ryfineZ/carrier-ims-for-pixel/releases"><img alt="Release" src="https://img.shields.io/github/v/release/ryfineZ/carrier-ims-for-pixel"></a>
-  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/ryfineZ/carrier-ims-for-pixel"></a>
+  <a href="https://github.com/Chenfyuan/carrier-ims-for-pixel/releases"><img alt="Release" src="https://img.shields.io/github/v/release/Chenfyuan/carrier-ims-for-pixel"></a>
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/Chenfyuan/carrier-ims-for-pixel"></a>
   <img alt="Platform" src="https://img.shields.io/badge/Platform-Android%2013%2B-3DDC84">
   <img alt="Device" src="https://img.shields.io/badge/Device-Pixel%20Tensor-blue">
   <img alt="Permission" src="https://img.shields.io/badge/Requires-Shizuku-orange">
 </p>
 
-## Repository Migration Note
-
-- Repository has been renamed from `ryfineZ/TurboIMS` to `ryfineZ/carrier-ims-for-pixel`.
-- Use `3.8.5` or later. In-app actions (`Check Update / Submit Issue / Open Repo`) now point to the new repository.
-- If an old build fails to update or open issue links, install manually from the new Releases page.
-
 ## Positioning
 
-This project is a continuously maintained branch based on [Mystery00/TurboIMS](https://github.com/Mystery00/TurboIMS), with major usability and compatibility improvements for Mainland China and cross-region use cases.
-
-Recent improvements include:
-
-- network diagnostics with side-by-side App vs CarrierConfig readback
-- denser card layout and tighter spacing for faster operation
-
-## Screenshots
-
-<p align="center">
-  <img src="docs/Screenshot1.png" width="46%" alt="screenshot-1" />
-  <img src="docs/Screenshot2.png" width="46%" alt="screenshot-2" />
-</p>
+A personal maintenance fork based on [ryfineZ/carrier-ims-for-pixel](https://github.com/ryfineZ/carrier-ims-for-pixel), with commercial modules (ads/donations/business cooperation) removed for a clean IMS tool experience.
 
 ## Feature Matrix
 
@@ -58,7 +40,7 @@ Recent improvements include:
 
 ## Quick Start
 
-1. Download APK from [Releases](https://github.com/ryfineZ/carrier-ims-for-pixel/releases)
+1. Download APK from [Releases](https://github.com/Chenfyuan/carrier-ims-for-pixel/releases)
 2. Install and start [Shizuku](https://shizuku.rikka.app/)
 3. Open app and grant Shizuku permission
 4. Select SIM and toggle required features
@@ -89,41 +71,23 @@ SIGN_KEY_PASSWORD=***
 
 ### IMS not registered
 
-- confirm Shizuku is ready
-- verify VoLTE / VoWiFi availability
-- collect logs and submit an issue
+- Confirm Shizuku is ready
+- Verify VoLTE / VoWiFi availability
+- Collect logs and submit an issue
 
 ### Network has signal but no internet
 
-- check APN first
-- then try the network verification fix card
+- Check APN first
+- Then try the network verification fix
 
 ### TikTok still unavailable
 
 - TikTok fix switch only appears for Mainland SIM
-- restart target app or refresh its session after changes
-
-### "Check update / Submit issue" fails on old versions
-
-- The repository has been renamed to `ryfineZ/carrier-ims-for-pixel`; old links may fail in some clients or network conditions.
-- Upgrade to `3.8.5` or later. New versions use the new repository endpoints and include a legacy API fallback for update checks.
-- If in-app update fails on an old build, download and install APK manually from the new Releases page.
-
-### Why "country code modification" was removed and replaced by "TikTok one-tap fix"
-
-- The old "country code" flow only wrote CarrierConfig override `sim_country_iso_override_string`; it did not truly modify baseband-level MCC/MNC.
-- Real network identity values (for example `gsm.operator.numeric` and registered MCC/MNC) are usually not changed by this override, so it is not a stable or universal "change country code" method.
-- In practice, TikTok availability was not determined by "switching to another country", but by setting ISO to an abnormal value, which could trigger an app-side identification fallback path and bypass part of SIM-region checks.
-- Based on this actual behavior, the project changed the entry to a clearer switch: "Fix TikTok No Network", to avoid implying that the app can truly rewrite carrier identity.
-- This behavior depends on target app versions and risk-control policy, and may change over time. It is provided for compatibility troubleshooting and testing only.
-
-## Changelog
-
-- Full changelog: [CHANGELOG.md](CHANGELOG.md)
-- Releases: [GitHub Releases](https://github.com/ryfineZ/carrier-ims-for-pixel/releases)
+- Restart target app or refresh its session after changes
 
 ## Credits
 
+- [ryfineZ/carrier-ims-for-pixel](https://github.com/ryfineZ/carrier-ims-for-pixel)
 - [Mystery00/TurboIMS](https://github.com/Mystery00/TurboIMS)
 - [vvb2060/Ims](https://github.com/vvb2060/Ims)
 - [kyujin-cho/pixel-volte-patch](https://github.com/kyujin-cho/pixel-volte-patch)

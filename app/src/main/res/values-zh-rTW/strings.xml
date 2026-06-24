@@ -39,9 +39,9 @@
     <string name="shizuku_no_permission_msg">請授予 Shizuku 權限</string>
     <string name="select_single_sim">請選中單張 SIM 卡</string>
     <string name="sim_list_refresh">SIM卡列表已刷新</string>
-    <string name="app_name">Carrier IMS</string>
+    <string name="app_name">Pixel IMS</string>
     <string name="for_pixel">forked by Mystery0</string>
-    <string name="brand_name">Carrier IMS for Pixel</string>
+    <string name="brand_name">Pixel IMS</string>
     <string name="brand_subtitle">基於 TurboIMS · 營運商與 IMS 工具集</string>
     <string name="system_build_version">System Build Version: %s</string>
     <string name="features_config">Features for this apply</string>

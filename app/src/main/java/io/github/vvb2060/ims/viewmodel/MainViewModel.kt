@@ -21,16 +21,11 @@ import io.github.vvb2060.ims.model.Feature
 import io.github.vvb2060.ims.model.FeatureConfigMapper
 import io.github.vvb2060.ims.model.FeatureValue
 import io.github.vvb2060.ims.model.FeatureValueType
-import io.github.vvb2060.ims.model.AdPlacement
 import io.github.vvb2060.ims.model.ApnDraftConfig
-import io.github.vvb2060.ims.model.BusinessIntentType
-import io.github.vvb2060.ims.model.CommercialAd
 import io.github.vvb2060.ims.model.ConfigBackupSnapshot
 import io.github.vvb2060.ims.model.NetworkExitStatus
 import io.github.vvb2060.ims.model.ShizukuStatus
 import io.github.vvb2060.ims.model.SimSelection
-import io.github.vvb2060.ims.model.SupportPaymentChannel
-import io.github.vvb2060.ims.model.SupportRecord
 import io.github.vvb2060.ims.model.SupportRules
 import io.github.vvb2060.ims.model.SystemInfo
 import io.github.vvb2060.ims.privileged.ImsModifier
@@ -64,12 +59,9 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
     companion object {
         private const val TAG = "MainViewModel"
         private const val RUNTIME_PREFS = "runtime_state"
-        private const val AD_PREFS = "ad_state"
         private const val CONFIG_BACKUP_PREFS = "config_backups"
         private const val COUNTRY_MCC_PREF_KEY = "__country_mcc_override__"
         private const val TIKTOK_RANDOM_ISO_PREF_KEY = "__tiktok_random_iso__"
-        private const val SUPPORT_CLIENT_REF_PREF_KEY = "support_client_ref"
-        private const val AD_FREE_PREF_KEY = "ad_free"
         private const val KEY_LAST_BOOT_COUNT = "last_boot_count"
         private const val ISSUE_FAILURE_LOG_FILE = "issue_failure_logs.txt"
         private const val ISSUE_FAILURE_LOG_MAX_LINES = 200
@@ -78,9 +70,6 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
         private const val IMS_REGISTER_RETRY_COUNT = 4
         private const val IMS_REGISTER_RETRY_DELAY_MS = 2_000L
         private const val NETWORK_EXIT_API_URL = "https://ipapi.co/json/"
-        private const val PROJECT_SOURCE_AD_SLOTS_PATH = "/api/sources/carrier-ims/ad-slots"
-        private const val PROJECT_PUBLIC_AD_SLOTS_PATH = "/api/project/public-ad-slots?project_id=carrier-ims"
-        private const val PROJECT_BUSINESS_INTENTS_PATH = "/api/sources/carrier-ims/intents"
         private val DEFAULT_CAPTIVE_PORTAL_TEST_URLS = listOf(
             "http://connectivitycheck.gstatic.cn/generate_204",
             "https://www.google.cn/generate_204",
@@ -119,13 +108,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
 
     private var toast: Toast? = null
     private val runtimePrefs = application.getSharedPreferences(RUNTIME_PREFS, Context.MODE_PRIVATE)
-    private val adPrefs = application.getSharedPreferences(AD_PREFS, Context.MODE_PRIVATE)
     private val configBackupPrefs = application.getSharedPreferences(CONFIG_BACKUP_PREFS, Context.MODE_PRIVATE)
-    private val dodopaySupportUrlTemplate = BuildConfig.DODOPAY_SUPPORT_URL_TEMPLATE.trim().takeIf { it.isNotBlank() }
-    private val dodopaySupportFeedUrl = BuildConfig.DODOPAY_SUPPORT_FEED_URL.trim().takeIf { it.isNotBlank() }
-    private val dodopaySupportAppId = SupportRules.extractSupportAppId(dodopaySupportUrlTemplate.orEmpty())
-    private val adApiBaseUrl = SupportRules.normalizeBaseUrl(BuildConfig.AD_API_BASE_URL)
-    private val businessIntentBaseUrl = SupportRules.normalizeBaseUrl(BuildConfig.BUSINESS_INTENT_BASE_URL)
     private val issueFailureLogMutex = Mutex()
     private var pendingConfigRestoreAfterBoot = false
     private var restoringConfigAfterBoot = false
@@ -602,16 +585,6 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
         )
     }
 
-    fun isDodopaySupportConfigured(): Boolean = dodopaySupportUrlTemplate != null
-
-    fun isDodopaySupportFeedConfigured(): Boolean = dodopaySupportFeedUrl != null
-
-    fun isAdFreeEnabled(): Boolean = runtimePrefs.getBoolean(AD_FREE_PREF_KEY, false)
-
-    fun isAdServiceConfigured(): Boolean = adApiBaseUrl != null
-
-    fun isBusinessIntentConfigured(): Boolean = businessIntentBaseUrl != null
-
     suspend fun checkNetworkExit(): Result<NetworkExitStatus> = withContext(Dispatchers.IO) {
         runCatching {
             val json = fetchJsonObject(NETWORK_EXIT_API_URL)
@@ -635,168 +608,6 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
         }
     }
 
-    suspend fun fetchCommercialAds(): Result<List<CommercialAd>> = withContext(Dispatchers.IO) {
-        runCatching {
-            val baseUrl = adApiBaseUrl ?: return@runCatching emptyList()
-            val publicAds = runCatching {
-                val json = fetchJsonObject(baseUrl + PROJECT_SOURCE_AD_SLOTS_PATH)
-                SupportRules.parseCommercialAds(json)
-            }.getOrDefault(emptyList())
-            if (publicAds.isNotEmpty()) {
-                return@runCatching publicAds
-            }
-            val compatiblePublicAds = runCatching {
-                SupportRules.parseCommercialAds(fetchJsonObject(baseUrl + PROJECT_PUBLIC_AD_SLOTS_PATH))
-            }.getOrDefault(emptyList())
-            compatiblePublicAds
-        }
-    }
-
-    suspend fun fetchSupportRecords(): Result<List<SupportRecord>> = withContext(Dispatchers.IO) {
-        runCatching {
-            val url = dodopaySupportFeedUrl ?: return@runCatching emptyList()
-            SupportRules.parseSupportRecords(fetchJsonObject(url))
-        }
-    }
-
-    suspend fun verifyDodopayPaymentProof(paymentProof: String): Result<Boolean> = withContext(Dispatchers.IO) {
-        runCatching {
-            val verifyUrl = buildDodopayPaymentProofUrl(paymentProof)
-                ?: throw IllegalStateException("DoDoPay payment proof is not configured")
-            val verification = SupportRules.parsePaymentProofVerification(fetchJsonObject(verifyUrl))
-            val unlocked = SupportRules.isAdFreePaymentProof(
-                proof = verification,
-                expectedClientRef = getOrCreateSupportClientRef(),
-                expectedAppId = dodopaySupportAppId,
-            )
-            if (unlocked) {
-                runtimePrefs.edit { putBoolean(AD_FREE_PREF_KEY, true) }
-            }
-            unlocked
-        }
-    }
-
-    fun shouldShowHomeAd(ad: CommercialAd): Boolean {
-        val dismissedAt = when (val raw = adPrefs.all["dismissed_${ad.id}"]) {
-            is Long -> raw
-            is Boolean -> if (raw) adPrefs.getLong("shown_${ad.id}", 0L) else 0L
-            else -> 0L
-        }
-        val lastShown = adPrefs.getLong("shown_${ad.id}", 0L)
-        return SupportRules.shouldShowHomeAd(
-            ad = ad,
-            nowMillis = System.currentTimeMillis(),
-            lastShownAtMillis = lastShown,
-            dismissedAtMillis = dismissedAt,
-        )
-    }
-
-    fun markHomeAdShown(ad: CommercialAd) {
-        adPrefs.edit { putLong("shown_${ad.id}", System.currentTimeMillis()) }
-    }
-
-    fun dismissHomeAd(ad: CommercialAd) {
-        adPrefs.edit {
-            val now = System.currentTimeMillis()
-            putLong("dismissed_${ad.id}", now)
-            putLong("shown_${ad.id}", now)
-        }
-    }
-
-    fun buildDodopaySupportUrl(
-        name: String,
-        message: String,
-        amount: String,
-        channel: SupportPaymentChannel,
-    ): Result<String> = runCatching {
-        val template = dodopaySupportUrlTemplate
-            ?: throw IllegalStateException(application.getString(R.string.support_payment_not_configured))
-        val normalizedAmount = amount.trim()
-        val validAmount = SupportRules.normalizeSupportAmount(normalizedAmount)
-            ?: throw IllegalArgumentException(application.getString(R.string.support_amount_invalid))
-        SupportRules.buildUrlWithQueryParams(
-            template = template,
-            params = linkedMapOf(
-                "amount" to validAmount,
-                "payer_name" to name.trim().ifBlank { "匿名用户" },
-                "payer_message" to message.trim(),
-                "source" to "turboims_android",
-                "app_version" to BuildConfig.VERSION_NAME,
-                "title" to application.getString(R.string.support_payment_page_title),
-                "description" to application.getString(R.string.support_payment_page_desc),
-                "subject" to application.getString(R.string.support_payment_subject),
-                "button_text" to application.getString(R.string.support_payment_button),
-                "return_mode" to "close",
-                "return_label" to application.getString(R.string.support_payment_return_app),
-                "client_ref" to getOrCreateSupportClientRef(),
-                "proof_key" to SupportRules.AD_FREE_PROOF_KEY,
-                "channel" to channel.queryValue,
-                "auto_checkout" to "1",
-            ),
-            aliases = mapOf(
-                "name" to "payer_name",
-                "message" to "payer_message",
-            ),
-        )
-    }
-
-    private fun getOrCreateSupportClientRef(): String {
-        val existing = runtimePrefs.getString(SUPPORT_CLIENT_REF_PREF_KEY, "").orEmpty()
-        if (existing.isNotBlank()) return existing
-        val generated = "client_${UUID.randomUUID().toString().replace("-", "")}"
-        runtimePrefs.edit { putString(SUPPORT_CLIENT_REF_PREF_KEY, generated) }
-        return generated
-    }
-
-    private fun buildDodopayPaymentProofUrl(paymentProof: String): String? {
-        val origin = SupportRules.resolveUrlOrigin(dodopaySupportUrlTemplate.orEmpty()) ?: return null
-        return "$origin/api/public/payment-proofs/$paymentProof"
-    }
-
-    suspend fun cancelDodopaySupportOrder(orderId: String): Result<Unit> = withContext(Dispatchers.IO) {
-        runCatching {
-            val cancelUrl = SupportRules.buildDodopayPublicSupportCancelUrl(
-                supportUrlTemplate = dodopaySupportUrlTemplate.orEmpty(),
-                orderId = orderId,
-            ) ?: throw IllegalArgumentException("invalid DoDoPay order id")
-            postJsonObject(cancelUrl, JSONObject())
-            Unit
-        }
-    }
-
-    suspend fun submitBusinessIntent(
-        intentType: BusinessIntentType,
-        name: String,
-        contact: String,
-        message: String,
-    ): Result<Unit> = withContext(Dispatchers.IO) {
-        runCatching {
-            val baseUrl = businessIntentBaseUrl
-                ?: throw IllegalStateException(application.getString(R.string.business_intent_not_configured))
-            val normalizedContact = contact.trim()
-            val normalizedMessage = message.trim()
-            if (normalizedContact.isBlank()) {
-                throw IllegalArgumentException(application.getString(R.string.business_contact_required))
-            }
-            if (normalizedMessage.isBlank()) {
-                throw IllegalArgumentException(application.getString(R.string.business_message_required))
-            }
-            val payload = JSONObject()
-            SupportRules.buildBusinessIntentParams(
-                sourceName = "Carrier IMS",
-                sourceVersion = BuildConfig.VERSION_NAME,
-                intentType = intentType,
-                name = name,
-                contact = normalizedContact,
-                message = normalizedMessage,
-            ).forEach { (key, value) ->
-                payload.put(key, value)
-            }
-            postJsonObject(baseUrl + PROJECT_BUSINESS_INTENTS_PATH, payload)
-            Unit
-        }
-    }
-
     fun buildSuggestedApnConfig(selectedSim: SimSelection): ApnDraftConfig {
         val mcc = SupportRules.normalizeMcc(selectedSim.mcc)
         val mnc = SupportRules.normalizeMnc(selectedSim.mnc)
@@ -806,7 +617,7 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
             mcc == "460" && mnc in setOf("03", "05", "11", "12") -> "ctnet"
             else -> "internet"
         }
-        val name = selectedSim.carrierName.ifBlank { selectedSim.showTitle }.ifBlank { "Carrier IMS APN" }
+        val name = selectedSim.carrierName.ifBlank { selectedSim.showTitle }.ifBlank { "Pixel IMS APN" }
         return ApnDraftConfig(
             name = name,
             apn = apn,
@@ -938,30 +749,6 @@ class MainViewModel(private val application: Application) : AndroidViewModel(app
             }
             val body = connection.inputStream.bufferedReader().use { it.readText() }
             return if (body.isBlank()) JSONObject() else JSONObject(body)
-        } finally {
-            connection.disconnect()
-        }
-    }
-
-    private fun postJsonObject(url: String, payload: JSONObject): JSONObject {
-        val connection = (URL(url).openConnection() as HttpURLConnection).apply {
-            connectTimeout = NETWORK_EXIT_CHECK_TIMEOUT_MS
-            readTimeout = NETWORK_EXIT_CHECK_TIMEOUT_MS
-            requestMethod = "POST"
-            doOutput = true
-            setRequestProperty("Accept", "application/json")
-            setRequestProperty("Content-Type", "application/json; charset=utf-8")
-            setRequestProperty("User-Agent", "CarrierIMS/${BuildConfig.VERSION_NAME}")
-        }
-        try {
-            connection.outputStream.use { output ->
-                output.write(payload.toString().toByteArray(Charsets.UTF_8))
-            }
-            val responseCode = connection.responseCode
-            if (responseCode !in 200..299) {
-                throw IllegalStateException("HTTP $responseCode")
-            }
-            return JSONObject(connection.inputStream.bufferedReader().use { it.readText() })
         } finally {
             connection.disconnect()
         }

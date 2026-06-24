@@ -10,8 +10,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.drawable.Icon as AndroidIcon
 import android.net.Uri
 import android.os.Build
@@ -20,9 +18,6 @@ import android.os.Environment
 import android.provider.Settings
 import android.telephony.SubscriptionManager
 import android.util.Log
-import android.webkit.WebResourceRequest
-import android.webkit.WebView
-import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.compose.foundation.Image
@@ -42,26 +37,29 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Cached
+import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.SimCard
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
@@ -71,19 +69,16 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -96,8 +91,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -115,7 +108,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -128,16 +120,11 @@ import io.github.vvb2060.ims.UpdateApkCleanup
 import io.github.vvb2060.ims.model.Feature
 import io.github.vvb2060.ims.model.FeatureValue
 import io.github.vvb2060.ims.model.FeatureValueType
-import io.github.vvb2060.ims.model.AdPlacement
 import io.github.vvb2060.ims.model.ApnDraftConfig
-import io.github.vvb2060.ims.model.BusinessIntentType
-import io.github.vvb2060.ims.model.CommercialAd
 import io.github.vvb2060.ims.model.ConfigBackupSnapshot
 import io.github.vvb2060.ims.model.NetworkExitStatus
 import io.github.vvb2060.ims.model.ShizukuStatus
 import io.github.vvb2060.ims.model.SimSelection
-import io.github.vvb2060.ims.model.SupportPaymentChannel
-import io.github.vvb2060.ims.model.SupportRecord
 import io.github.vvb2060.ims.model.SupportRules
 import io.github.vvb2060.ims.model.SystemInfo
 import io.github.vvb2060.ims.privileged.ImsModifier
@@ -161,11 +148,11 @@ import java.util.Locale
 
 private const val COUNTRY_ISO_OPTION_DEFAULT = "__default__"
 private const val COUNTRY_ISO_OPTION_OTHER = "__other__"
-private const val REPO_URL = "https://github.com/ryfineZ/carrier-ims-for-pixel"
-private const val REPO_ISSUE_URL = "https://github.com/ryfineZ/carrier-ims-for-pixel/issues/new"
-private const val REPO_OWNER = "ryfineZ"
+private const val REPO_URL = "https://github.com/Chenfyuan/carrier-ims-for-pixel"
+private const val REPO_ISSUE_URL = "https://github.com/Chenfyuan/carrier-ims-for-pixel/issues/new"
+private const val REPO_OWNER = "Chenfyuan"
 private const val REPO_NAME = "carrier-ims-for-pixel"
-private const val LEGACY_REPO_NAME = "TurboIMS"
+private const val LEGACY_REPO_NAME = "carrier-ims-for-pixel"
 private val RELEASES_LATEST_API_URLS = listOf(
     "https://api.github.com/repos/$REPO_OWNER/$REPO_NAME/releases/latest",
     "https://api.github.com/repos/$REPO_OWNER/$LEGACY_REPO_NAME/releases/latest",
@@ -193,12 +180,6 @@ private data class CountryIsoOption(
     val labelRes: Int,
 )
 
-private sealed interface RemoteAdImageState {
-    data object Loading : RemoteAdImageState
-    data object Failed : RemoteAdImageState
-    data class Ready(val bitmap: Bitmap) : RemoteAdImageState
-}
-
 private enum class CaptivePortalAction {
     FIX,
     RESTORE,
@@ -208,10 +189,7 @@ private enum class CaptivePortalAction {
 private enum class MainTab(
     val labelRes: Int,
 ) {
-    IMS(R.string.tab_ims),
-    EXTRA(R.string.tab_extra),
-    SUPPORT(R.string.tab_support),
-    COOPERATION(R.string.tab_cooperation),
+    TOOLS(R.string.tab_tools),
     ABOUT(R.string.tab_about),
 }
 
@@ -227,23 +205,32 @@ private val countryIsoOptions = listOf(
     CountryIsoOption(COUNTRY_ISO_OPTION_OTHER, null, null, R.string.country_iso_option_other),
 )
 
-private val fiveGFeatureSet = setOf(
+private val imsFeatureSet = setOf(
+    Feature.VOLTE,
+    Feature.VOWIFI,
+    Feature.VT,
+    Feature.VONR,
+    Feature.CROSS_SIM,
+    Feature.UT,
+)
+
+private val networkDisplayFeatureSet = setOf(
     Feature.FIVE_G_NR,
     Feature.FIVE_G_THRESHOLDS,
     Feature.FIVE_G_PLUS_ICON,
-    Feature.VONR,
+    Feature.SHOW_4G_FOR_LTE,
 )
 
-private val fourGFeatureSet = setOf(
-    Feature.VOLTE,
-    Feature.SHOW_4G_FOR_LTE,
+private val compatFeatureSet = setOf(
+    Feature.TIKTOK_NETWORK_FIX,
 )
 
 private fun switchFeatureCategoryOrder(feature: Feature): Int {
     return when {
-        fiveGFeatureSet.contains(feature) -> 0
-        fourGFeatureSet.contains(feature) -> 1
-        else -> 2
+        imsFeatureSet.contains(feature) -> 0
+        networkDisplayFeatureSet.contains(feature) -> 1
+        compatFeatureSet.contains(feature) -> 2
+        else -> 3
     }
 }
 
@@ -483,7 +470,7 @@ class MainActivity : BaseActivity() {
         val clipboardManager = context.getSystemService(ClipboardManager::class.java)
 
         val scope = rememberCoroutineScope()
-        var selectedTab by remember { mutableStateOf(MainTab.IMS) }
+        var selectedTab by remember { mutableStateOf(MainTab.TOOLS) }
         var selectedSim by remember { mutableStateOf<SimSelection?>(null) }
         var showShizukuUpdateDialog by remember { mutableStateOf(false) }
         var pendingAutoSelectSimAfterReady by remember { mutableStateOf(false) }
@@ -503,17 +490,9 @@ class MainActivity : BaseActivity() {
         var networkExitChecking by remember { mutableStateOf(false) }
         var networkExitStatus by remember { mutableStateOf<NetworkExitStatus?>(null) }
         var networkExitError by remember { mutableStateOf<String?>(null) }
-        var adFreeEnabled by remember { mutableStateOf(viewModel.isAdFreeEnabled()) }
-        var commercialAds by remember { mutableStateOf<List<CommercialAd>>(emptyList()) }
-        var homeAdToShow by remember { mutableStateOf<CommercialAd?>(null) }
-        var supportPaymentUrl by remember { mutableStateOf<String?>(null) }
-        var supportRecords by remember { mutableStateOf<List<SupportRecord>>(emptyList()) }
-        var supportRecordsLoading by remember { mutableStateOf(false) }
-        var supportRecordsError by remember { mutableStateOf<String?>(null) }
         var apnDraft by remember { mutableStateOf<ApnDraftConfig?>(null) }
         var apnDraftSim by remember { mutableStateOf<SimSelection?>(null) }
         var applyingApn by remember { mutableStateOf(false) }
-        var submittingBusinessIntent by remember { mutableStateOf(false) }
         var configBackups by remember { mutableStateOf<List<ConfigBackupSnapshot>>(emptyList()) }
         var pendingBackupRestore by remember { mutableStateOf<ConfigBackupSnapshot?>(null) }
         var pendingBackupRestoreSim by remember { mutableStateOf<SimSelection?>(null) }
@@ -566,24 +545,6 @@ class MainActivity : BaseActivity() {
         }
         LaunchedEffect(Unit) {
             configBackups = viewModel.loadConfigBackups()
-            if (!adFreeEnabled) {
-                commercialAds = viewModel.fetchCommercialAds().getOrDefault(emptyList())
-                homeAdToShow = commercialAds.firstOrNull {
-                    it.placement == AdPlacement.HOME_POPUP && viewModel.shouldShowHomeAd(it)
-                }
-                homeAdToShow?.let { viewModel.markHomeAdShown(it) }
-            }
-        }
-        LaunchedEffect(selectedTab) {
-            if (selectedTab != MainTab.SUPPORT || !viewModel.isDodopaySupportFeedConfigured()) {
-                return@LaunchedEffect
-            }
-            supportRecordsLoading = true
-            supportRecordsError = null
-            val result = viewModel.fetchSupportRecords()
-            supportRecords = result.getOrDefault(emptyList())
-            supportRecordsError = result.exceptionOrNull()?.message
-            supportRecordsLoading = false
         }
         LaunchedEffect(allSimList) {
             val validSubIds = allSimList.filter { it.subId >= 0 }.map { it.subId }.toSet()
@@ -841,6 +802,23 @@ class MainActivity : BaseActivity() {
             modifier = Modifier
                 .fillMaxSize(),
             contentWindowInsets = WindowInsets(0.dp),
+            topBar = {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            text = if (selectedTab == MainTab.TOOLS) {
+                                stringResource(R.string.app_name)
+                            } else {
+                                stringResource(selectedTab.labelRes)
+                            },
+                            style = MaterialTheme.typography.titleMedium,
+                        )
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    ),
+                )
+            },
             bottomBar = {
                 NavigationBar {
                     MainTab.entries.forEach { tab ->
@@ -848,19 +826,15 @@ class MainActivity : BaseActivity() {
                             selected = selectedTab == tab,
                             onClick = { selectedTab = tab },
                             icon = {
-                                Text(
-                                    text = when (tab) {
-                                        MainTab.IMS -> "IMS"
-                                        MainTab.EXTRA -> "+"
-                                        MainTab.SUPPORT -> "$"
-                                        MainTab.COOPERATION -> "AD"
-                                        MainTab.ABOUT -> "i"
+                                Icon(
+                                    imageVector = when (tab) {
+                                        MainTab.TOOLS -> Icons.Rounded.SimCard
+                                        MainTab.ABOUT -> Icons.Rounded.Info
                                     },
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.SemiBold
+                                    contentDescription = stringResource(tab.labelRes)
                                 )
                             },
-                            label = { Text(stringResource(tab.labelRes), fontSize = 11.sp) }
+                            label = { Text(stringResource(tab.labelRes), style = MaterialTheme.typography.labelSmall) }
                         )
                     }
                 }
@@ -870,11 +844,11 @@ class MainActivity : BaseActivity() {
                 modifier = Modifier
                     .padding(innerPadding)
                     .consumeWindowInsets(innerPadding)
-                    .statusBarsPadding()
                     .verticalScroll(rememberScrollState())
             ) {
-                if (selectedTab == MainTab.IMS) {
-                    HomeStatusCard(
+                if (selectedTab == MainTab.TOOLS) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    ShizukuWarningBanner(
                         shizukuStatus = shizukuStatus,
                         onRefresh = {
                             viewModel.updateShizukuStatus()
@@ -966,16 +940,13 @@ class MainActivity : BaseActivity() {
                             }
                         },
                         onIssueClick = submitIssueAction,
-                        onDonateClick = {
-                            selectedTab = MainTab.SUPPORT
-                        },
-                        showDonateButton = false,
                     )
                 }
-                if (selectedTab == MainTab.IMS && shizukuStatus == ShizukuStatus.READY) {
+                if (selectedTab == MainTab.TOOLS && shizukuStatus == ShizukuStatus.READY) {
                     SimCardSelectionCard(selectedSim, allSimList, onSelectSim = {
                         selectedSim = it
                     }, onRefreshSimList = refreshSimListAction)
+                    Spacer(modifier = Modifier.height(16.dp))
                     FeaturesCard(
                         isSelectAllSim = selectedSim?.subId == -1,
                         allSimList = allSimList,
@@ -1237,13 +1208,12 @@ class MainActivity : BaseActivity() {
                         },
                     )
                 }
-                if (selectedTab == MainTab.EXTRA) {
+                if (selectedTab == MainTab.TOOLS && shizukuStatus == ShizukuStatus.READY) {
                     val extraSimList = allSimList.filter { it.subId >= 0 }
                     val extraSelectedSim = selectedSim?.takeIf { it.subId >= 0 } ?: extraSimList.firstOrNull()
                     ExtraToolsPage(
                         shizukuStatus = shizukuStatus,
                         selectedSim = extraSelectedSim,
-                        allSimList = extraSimList,
                         tiktokEnabled = (featureSwitches[Feature.TIKTOK_NETWORK_FIX]?.data as? Boolean) == true,
                         featureSwitchesEnabled = !applyingConfiguration,
                         checkingCaptivePortalStatus = checkingCaptivePortalStatus,
@@ -1253,8 +1223,6 @@ class MainActivity : BaseActivity() {
                         networkExitStatus = networkExitStatus,
                         networkExitError = networkExitError,
                         configBackups = configBackups,
-                        onSelectSim = { selectedSim = it },
-                        onRefreshSimList = refreshSimListAction,
                         onFixCaptivePortal = fixCaptivePortalAction,
                         onTikTokFixChange = { enabled ->
                             handleFeatureSwitchChange(
@@ -1325,69 +1293,6 @@ class MainActivity : BaseActivity() {
                         },
                     )
                 }
-                if (selectedTab == MainTab.SUPPORT) {
-                    SupportPage(
-                        supportPaymentConfigured = viewModel.isDodopaySupportConfigured(),
-                        adFreeEnabled = adFreeEnabled,
-                        supportRecordsConfigured = viewModel.isDodopaySupportFeedConfigured(),
-                        supportRecordsLoading = supportRecordsLoading,
-                        supportRecords = supportRecords,
-                        supportRecordsError = supportRecordsError,
-                        onCreateSupportOrder = supportOrder@{ name, message, amount, channel ->
-                            val result = viewModel.buildDodopaySupportUrl(name, message, amount, channel)
-                            val url = result.getOrNull()
-                            if (url == null) {
-                                Toast.makeText(
-                                    context,
-                                    result.exceptionOrNull()?.message
-                                        ?: context.getString(R.string.support_payment_open_failed),
-                                    Toast.LENGTH_LONG
-                                ).show()
-                                return@supportOrder
-                            }
-                            supportPaymentUrl = url
-                        },
-                    )
-                }
-                if (selectedTab == MainTab.COOPERATION) {
-                    CooperationPage(
-                        adsConfigured = viewModel.isAdServiceConfigured(),
-                        businessIntentConfigured = viewModel.isBusinessIntentConfigured(),
-                        businessIntentSubmitting = submittingBusinessIntent,
-                        cooperationAds = if (adFreeEnabled) {
-                            emptyList()
-                        } else {
-                            commercialAds.filter { it.placement == AdPlacement.COOPERATION_CARD }
-                        },
-                        businessContactText = BuildConfig.BUSINESS_CONTACT_TEXT,
-                        businessContactUrl = BuildConfig.BUSINESS_CONTACT_URL,
-                        onOpenAd = { ad ->
-                            if (ad.actionUrl.isNotBlank()) uriHandler.openUri(ad.actionUrl)
-                        },
-                        onSubmitBusinessIntent = { intentType, name, contact, message ->
-                            scope.launch {
-                                submittingBusinessIntent = true
-                                val result = viewModel.submitBusinessIntent(intentType, name, contact, message)
-                                submittingBusinessIntent = false
-                                if (result.isSuccess) {
-                                    Toast.makeText(context, R.string.business_intent_success, Toast.LENGTH_SHORT).show()
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        context.getString(
-                                            R.string.business_intent_failed,
-                                            result.exceptionOrNull()?.message ?: "unknown"
-                                        ),
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                }
-                            }
-                        },
-                        onOpenBusinessContact = { url ->
-                            if (url.isNotBlank()) uriHandler.openUri(url)
-                        },
-                    )
-                }
                 if (selectedTab == MainTab.ABOUT && issueFailureLogs.isNotBlank()) {
                     IssueReportHintCard(
                         onSubmitIssue = submitIssueAction
@@ -1395,58 +1300,6 @@ class MainActivity : BaseActivity() {
                 }
                 Spacer(modifier = Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
 
-                if (!adFreeEnabled) homeAdToShow?.let { ad ->
-                    CommercialAdDialog(
-                        ad = ad,
-                        onOpen = {
-                            homeAdToShow = null
-                            if (ad.actionUrl.isNotBlank()) uriHandler.openUri(ad.actionUrl)
-                        },
-                        onDismiss = {
-                            viewModel.dismissHomeAd(ad)
-                            homeAdToShow = null
-                        }
-                    )
-                }
-                supportPaymentUrl?.let { url ->
-                    SupportPaymentDialog(
-                        url = url,
-                        onCancelPendingOrder = { orderId ->
-                            scope.launch {
-                                val result = viewModel.cancelDodopaySupportOrder(orderId)
-                                result.exceptionOrNull()?.let { error ->
-                                    Log.w("MainActivity", "cancel DoDoPay support order failed: $orderId, msg=${error.message}")
-                                }
-                            }
-                        },
-                        onDismiss = { paymentProof ->
-                            supportPaymentUrl = null
-                            if (paymentProof != null) {
-                                scope.launch {
-                                    val result = viewModel.verifyDodopayPaymentProof(paymentProof)
-                                    if (result.getOrDefault(false)) {
-                                        adFreeEnabled = true
-                                        commercialAds = emptyList()
-                                        homeAdToShow = null
-                                        Toast.makeText(context, R.string.support_ad_free_verified, Toast.LENGTH_SHORT).show()
-                                    } else if (result.isFailure) {
-                                        Toast.makeText(context, R.string.support_ad_free_verify_failed, Toast.LENGTH_LONG).show()
-                                    }
-                                }
-                            }
-                            if (viewModel.isDodopaySupportFeedConfigured()) {
-                                scope.launch {
-                                    supportRecordsLoading = true
-                                    supportRecordsError = null
-                                    val result = viewModel.fetchSupportRecords()
-                                    supportRecords = result.getOrDefault(emptyList())
-                                    supportRecordsError = result.exceptionOrNull()?.message
-                                    supportRecordsLoading = false
-                                }
-                            }
-                        },
-                    )
-                }
                 apnDraft?.let { draft ->
                     ApnConfirmDialog(
                         draft = draft,
@@ -1588,7 +1441,7 @@ class MainActivity : BaseActivity() {
                                             R.string.diagnostics_finished
                                         }
                                     ),
-                                    fontSize = 12.sp,
+                                    style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.outline
                                 )
                                 if (diagnosticsRunning) {
@@ -1608,7 +1461,7 @@ class MainActivity : BaseActivity() {
                                 ) {
                                     Text(
                                         text = logText.ifBlank { stringResource(R.string.diagnostics_empty) },
-                                        fontSize = 12.sp,
+                                        style = MaterialTheme.typography.bodySmall,
                                         fontFamily = FontFamily.Monospace
                                     )
                                 }
@@ -1653,7 +1506,7 @@ class MainActivity : BaseActivity() {
         }
         val fileName = buildUpdateApkFileName(release.version)
         val request = DownloadManager.Request(release.downloadUrl.toUri())
-            .setTitle("Carrier IMS ${release.version}")
+            .setTitle("Pixel IMS ${release.version}")
             .setDescription(release.releaseNotes.ifBlank { release.version })
             .setMimeType(UPDATE_APK_MIME_TYPE)
             .setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED)
@@ -1819,7 +1672,7 @@ class MainActivity : BaseActivity() {
 }
 
 @Composable
-private fun HomeStatusCard(
+private fun ShizukuWarningBanner(
     shizukuStatus: ShizukuStatus,
     onRefresh: () -> Unit,
     onRequestShizukuPermission: () -> Unit,
@@ -1828,40 +1681,36 @@ private fun HomeStatusCard(
         ShizukuStatus.CHECKING -> stringResource(R.string.shizuku_checking)
         ShizukuStatus.NOT_RUNNING -> stringResource(R.string.shizuku_not_running)
         ShizukuStatus.NO_PERMISSION -> stringResource(R.string.shizuku_no_permission)
-        ShizukuStatus.READY -> stringResource(R.string.shizuku_ready)
+        ShizukuStatus.READY -> return
         ShizukuStatus.NEED_UPDATE -> stringResource(R.string.update_shizuku)
     }
-    Card(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(top = 16.dp, bottom = 8.dp)
+            .padding(top = 12.dp, bottom = 4.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.errorContainer)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    modifier = Modifier.weight(1f),
-                    text = stringResource(R.string.shizuku_status, shizukuStatusText),
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                )
-                FeatureActionChip(
-                    icon = Icons.Rounded.Cached,
-                    label = stringResource(R.string.refresh_permission),
-                    onClick = onRefresh,
-                )
-            }
-            if (shizukuStatus == ShizukuStatus.NO_PERMISSION) {
-                Button(onClick = onRequestShizukuPermission) {
-                    Text(stringResource(R.string.request_permission))
-                }
-            }
+        Text(
+            modifier = Modifier.weight(1f),
+            text = stringResource(R.string.shizuku_status, shizukuStatusText),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onErrorContainer,
+        )
+        if (shizukuStatus == ShizukuStatus.NO_PERMISSION) {
+            AssistChip(
+                onClick = onRequestShizukuPermission,
+                label = { Text(stringResource(R.string.request_permission), style = MaterialTheme.typography.labelSmall) },
+            )
+        } else {
+            AssistChip(
+                onClick = onRefresh,
+                label = { Text(stringResource(R.string.refresh_permission), style = MaterialTheme.typography.labelSmall) },
+            )
         }
     }
 }
@@ -1870,7 +1719,6 @@ private fun HomeStatusCard(
 private fun ExtraToolsPage(
     shizukuStatus: ShizukuStatus,
     selectedSim: SimSelection?,
-    allSimList: List<SimSelection>,
     tiktokEnabled: Boolean,
     featureSwitchesEnabled: Boolean,
     checkingCaptivePortalStatus: Boolean,
@@ -1880,8 +1728,6 @@ private fun ExtraToolsPage(
     networkExitStatus: NetworkExitStatus?,
     networkExitError: String?,
     configBackups: List<ConfigBackupSnapshot>,
-    onSelectSim: (SimSelection) -> Unit,
-    onRefreshSimList: () -> Unit,
     onFixCaptivePortal: () -> Unit,
     onTikTokFixChange: (Boolean) -> Unit,
     onCheckNetworkExit: () -> Unit,
@@ -1899,13 +1745,7 @@ private fun ExtraToolsPage(
             body = stringResource(R.string.captive_portal_fix_requires_shizuku)
         )
     }
-    SimCardSelectionCard(
-        selectedSim = selectedSim,
-        allSimList = allSimList,
-        onSelectSim = onSelectSim,
-        onRefreshSimList = onRefreshSimList,
-    )
-    Spacer(modifier = Modifier.height(16.dp))
+    Spacer(modifier = Modifier.height(8.dp))
     RegionCompatibilityCard(
         selectedSim = selectedSim,
         isDomestic = isDomestic,
@@ -1953,22 +1793,22 @@ private fun RegionCompatibilityCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp)
+            .padding(bottom = 16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
                 text = stringResource(R.string.region_compat_title),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleSmall,
             )
             val sim = selectedSim
             if (sim == null || sim.subId < 0) {
                 Text(
                     text = stringResource(R.string.select_single_sim),
-                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.outline,
                 )
                 return@Column
@@ -2004,9 +1844,10 @@ private fun TiktokFixCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp)
+            .padding(bottom = 16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
             BooleanFeatureItem(
                 title = stringResource(R.string.tiktok_network_fix),
                 description = if (available) {
@@ -2033,20 +1874,20 @@ private fun NetworkExitCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp)
+            .padding(bottom = 16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
                 text = stringResource(R.string.network_exit_title),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleSmall,
             )
             Text(
                 text = stringResource(R.string.network_exit_desc),
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.outline,
             )
             Button(
@@ -2083,22 +1924,22 @@ private fun ApnSimInfoCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp)
+            .padding(bottom = 16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
                 text = stringResource(R.string.apn_sim_title),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleSmall,
             )
             val sim = selectedSim
             if (sim == null || sim.subId < 0) {
                 Text(
                     text = stringResource(R.string.select_single_sim),
-                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.outline
                 )
             } else {
@@ -2131,20 +1972,20 @@ private fun QuickSettingsGuideCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp)
+            .padding(bottom = 16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
                 text = stringResource(R.string.qs_guide_title),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.titleSmall,
             )
             Text(
                 text = stringResource(R.string.qs_guide_desc),
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.outline,
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -2206,7 +2047,7 @@ private fun QuickTileButton(
         modifier = modifier.height(40.dp),
         contentPadding = ButtonDefaults.ContentPadding,
     ) {
-        Text(label, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Text(label, style = MaterialTheme.typography.bodySmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -2222,18 +2063,18 @@ private fun ConfigBackupCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp)
+            .padding(bottom = 16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     text = stringResource(R.string.config_backup_title),
                     modifier = Modifier.weight(1f),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.titleSmall,
                 )
                 Button(onClick = onBackupConfig, modifier = Modifier.height(40.dp)) {
                     Text(stringResource(R.string.config_backup_action))
@@ -2245,13 +2086,13 @@ private fun ConfigBackupCard(
                 } else {
                     stringResource(R.string.select_single_sim)
                 },
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.outline,
             )
             if (backups.isEmpty()) {
                 Text(
                     text = stringResource(R.string.config_backup_empty),
-                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.outline
                 )
             } else {
@@ -2262,10 +2103,10 @@ private fun ConfigBackupCard(
                         horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
-                            Text(backup.name, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                            Text(backup.name, style = MaterialTheme.typography.bodyMedium)
                             Text(
                                 text = backupSubtitle(backup),
-                                fontSize = 11.sp,
+                                style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.outline
                             )
                         }
@@ -2277,684 +2118,6 @@ private fun ConfigBackupCard(
                         }
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SupportPage(
-    supportPaymentConfigured: Boolean,
-    adFreeEnabled: Boolean,
-    supportRecordsConfigured: Boolean,
-    supportRecordsLoading: Boolean,
-    supportRecords: List<SupportRecord>,
-    supportRecordsError: String?,
-    onCreateSupportOrder: (String, String, String, SupportPaymentChannel) -> Unit,
-) {
-    var name by remember { mutableStateOf("") }
-    var message by remember { mutableStateOf("") }
-    var amount by remember { mutableStateOf("9.90") }
-    val amountValid = SupportRules.normalizeSupportAmount(amount) != null
-    val supportEnabled = supportPaymentConfigured && amountValid
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Text(stringResource(R.string.support_message_title), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-            if (!supportPaymentConfigured) {
-                Text(
-                    text = stringResource(R.string.support_payment_not_configured),
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.outline,
-                )
-            }
-            Text(
-                text = stringResource(
-                    if (adFreeEnabled) {
-                        R.string.support_ad_free_enabled
-                    } else {
-                        R.string.support_ad_free_hint
-                    }
-                ),
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.outline,
-            )
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it.take(24) },
-                label = { Text(stringResource(R.string.support_name_label)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            OutlinedTextField(
-                value = message,
-                onValueChange = { message = it.take(120) },
-                label = { Text(stringResource(R.string.support_message_label)) },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 2,
-                maxLines = 4,
-            )
-            OutlinedTextField(
-                value = amount,
-                onValueChange = { raw -> amount = raw.filter { it.isDigit() || it == '.' }.take(8) },
-                label = { Text(stringResource(R.string.support_amount_label)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                listOf("9.90", "30", "100").forEach { preset ->
-                    AssistChip(
-                        onClick = { amount = preset },
-                        label = { Text("¥$preset") },
-                    )
-                }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(
-                    onClick = { onCreateSupportOrder(name, message, amount, SupportPaymentChannel.ALIPAY) },
-                    enabled = supportEnabled,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(44.dp)
-                ) {
-                    Text(stringResource(R.string.support_pay_alipay))
-                }
-                OutlinedButton(
-                    onClick = { onCreateSupportOrder(name, message, amount, SupportPaymentChannel.WECHAT) },
-                    enabled = supportEnabled,
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(44.dp)
-                ) {
-                    Text(stringResource(R.string.support_pay_wechat))
-                }
-            }
-        }
-    }
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.support_records_title),
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-            )
-            when {
-                !supportRecordsConfigured -> {
-                    Text(
-                        text = stringResource(R.string.support_records_dodopay_note),
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                }
-                supportRecordsLoading -> {
-                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
-                    Text(
-                        text = stringResource(R.string.support_records_loading),
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                }
-                supportRecordsError != null -> {
-                    Text(
-                        text = stringResource(R.string.support_records_load_failed),
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                }
-                supportRecords.isEmpty() -> {
-                    Text(
-                        text = stringResource(R.string.support_records_empty),
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.outline
-                    )
-                }
-                else -> {
-                    supportRecords.forEachIndexed { index, record ->
-                        if (index > 0) HorizontalDivider()
-                        SupportRecordRow(record)
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun SupportRecordRow(record: SupportRecord) {
-    val name = record.payerName.ifBlank { stringResource(R.string.support_records_anonymous) }
-    val message = record.payerMessage.ifBlank { stringResource(R.string.support_records_no_message) }
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Text(
-                text = name,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier.weight(1f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            Text(
-                text = "¥${record.amount}",
-                fontSize = 14.sp,
-                fontWeight = FontWeight.SemiBold,
-            )
-        }
-        Text(
-            text = message,
-            fontSize = 13.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-        )
-        Text(
-            text = listOf(formatSupportPaidAt(record.paidAt), record.channel)
-                .filter { it.isNotBlank() }
-                .joinToString(" · "),
-            fontSize = 11.sp,
-            color = MaterialTheme.colorScheme.outline,
-        )
-    }
-}
-
-private fun formatSupportPaidAt(value: String): String {
-    return SupportRules.formatIsoDateTimeForDisplay(value)
-}
-
-@Composable
-private fun CooperationPage(
-    adsConfigured: Boolean,
-    businessIntentConfigured: Boolean,
-    businessIntentSubmitting: Boolean,
-    cooperationAds: List<CommercialAd>,
-    businessContactText: String,
-    businessContactUrl: String,
-    onOpenAd: (CommercialAd) -> Unit,
-    onSubmitBusinessIntent: (BusinessIntentType, String, String, String) -> Unit,
-    onOpenBusinessContact: (String) -> Unit,
-) {
-    var businessIntentType by remember { mutableStateOf(BusinessIntentType.ADS) }
-    var businessName by remember { mutableStateOf("") }
-    var businessContact by remember { mutableStateOf("") }
-    var businessMessage by remember { mutableStateOf("") }
-
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(stringResource(R.string.business_contact_title), fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
-            Text(stringResource(R.string.business_contact_desc), fontSize = 12.sp, color = MaterialTheme.colorScheme.outline)
-            if (!businessIntentConfigured) {
-                Text(
-                    text = stringResource(R.string.business_intent_not_configured),
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.outline,
-                )
-            }
-            OutlinedTextField(
-                value = businessName,
-                onValueChange = { businessName = it.take(40) },
-                label = { Text(stringResource(R.string.business_name_label)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            OutlinedTextField(
-                value = businessContact,
-                onValueChange = { businessContact = it.take(120) },
-                label = { Text(stringResource(R.string.business_contact_label)) },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            BusinessIntentTypeField(
-                value = businessIntentType,
-                onValueChange = { businessIntentType = it },
-            )
-            OutlinedTextField(
-                value = businessMessage,
-                onValueChange = { businessMessage = it.take(500) },
-                label = { Text(stringResource(R.string.business_message_label)) },
-                modifier = Modifier.fillMaxWidth(),
-                minLines = 2,
-                maxLines = 4,
-            )
-            Button(
-                onClick = {
-                    onSubmitBusinessIntent(
-                        businessIntentType,
-                        businessName,
-                        businessContact,
-                        businessMessage
-                    )
-                },
-                enabled = businessIntentConfigured &&
-                    !businessIntentSubmitting &&
-                    businessContact.isNotBlank() &&
-                    businessMessage.isNotBlank(),
-                modifier = Modifier.height(44.dp)
-            ) {
-                Text(
-                    stringResource(
-                        if (businessIntentSubmitting) {
-                            R.string.business_intent_submitting
-                        } else {
-                            R.string.business_intent_submit
-                        }
-                    )
-                )
-            }
-            if (!businessIntentConfigured && businessContactText.isNotBlank()) {
-                Text(
-                    text = businessContactText,
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                )
-            }
-            if (!businessIntentConfigured && businessContactUrl.isNotBlank()) {
-                TextButton(onClick = { onOpenBusinessContact(businessContactUrl) }) {
-                    Text(stringResource(R.string.business_contact_action))
-                }
-            }
-            if (!adsConfigured) {
-                Text(stringResource(R.string.ads_service_not_configured), fontSize = 12.sp, color = MaterialTheme.colorScheme.outline)
-            }
-            cooperationAds.forEach { ad ->
-                CommercialAdInlineCard(ad = ad, onOpen = { onOpenAd(ad) })
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun BusinessIntentTypeField(
-    value: BusinessIntentType,
-    onValueChange: (BusinessIntentType) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded },
-    ) {
-        OutlinedTextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable),
-            value = businessIntentTypeText(value),
-            onValueChange = {},
-            readOnly = true,
-            singleLine = true,
-            label = { Text(stringResource(R.string.business_type_label)) },
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded)
-            },
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            BusinessIntentType.entries.forEach { type ->
-                DropdownMenuItem(
-                    text = { Text(businessIntentTypeText(type)) },
-                    onClick = {
-                        expanded = false
-                        onValueChange(type)
-                    },
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun businessIntentTypeText(type: BusinessIntentType): String {
-    return stringResource(
-        when (type) {
-            BusinessIntentType.ADS -> R.string.business_type_ads
-            BusinessIntentType.DEVELOPMENT -> R.string.business_type_development
-            BusinessIntentType.TOKEN_SUPPLY -> R.string.business_type_token_supply
-            BusinessIntentType.OTHER -> R.string.business_type_other
-        }
-    )
-}
-
-@Composable
-private fun CommercialAdInlineCard(
-    ad: CommercialAd,
-    onOpen: () -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(10.dp))
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest)
-            .clickable(enabled = ad.actionUrl.isNotBlank(), onClick = onOpen)
-            .padding(10.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        if (ad.imageUrl.isNotBlank()) {
-            RemoteAdImage(
-                ad = ad,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 180.dp)
-                    .clip(RoundedCornerShape(8.dp))
-            )
-        }
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                if (ad.title.isNotBlank()) {
-                    Text(ad.title, fontSize = 14.sp, fontWeight = FontWeight.Medium)
-                }
-                if (ad.body.isNotBlank()) {
-                    Text(ad.body, fontSize = 12.sp, color = MaterialTheme.colorScheme.outline)
-                }
-            }
-            if (ad.actionUrl.isNotBlank()) {
-                Text(ad.actionLabel, fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
-            }
-        }
-    }
-}
-
-@Composable
-private fun RemoteAdImage(
-    ad: CommercialAd,
-    modifier: Modifier = Modifier,
-) {
-    val state by produceState<RemoteAdImageState>(
-        initialValue = RemoteAdImageState.Loading,
-        key1 = ad.imageUrl,
-    ) {
-        value = loadRemoteAdImage(ad.imageUrl)?.let(RemoteAdImageState::Ready)
-            ?: RemoteAdImageState.Failed
-    }
-    when (val current = state) {
-        RemoteAdImageState.Loading -> {
-            Box(
-                modifier = modifier
-                    .height(120.dp)
-                    .background(MaterialTheme.colorScheme.surfaceContainer),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = stringResource(R.string.ad_image_loading),
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.outline,
-                )
-            }
-        }
-
-        RemoteAdImageState.Failed -> {
-            Box(
-                modifier = modifier
-                    .height(120.dp)
-                    .background(MaterialTheme.colorScheme.surfaceContainer),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = stringResource(R.string.ad_image_failed),
-                    fontSize = 12.sp,
-                    color = MaterialTheme.colorScheme.outline,
-                )
-            }
-        }
-
-        is RemoteAdImageState.Ready -> {
-            Image(
-                bitmap = current.bitmap.asImageBitmap(),
-                contentDescription = ad.altText.ifBlank { ad.title },
-                contentScale = ad.imageContentScale(),
-                modifier = modifier,
-            )
-        }
-    }
-}
-
-private suspend fun loadRemoteAdImage(imageUrl: String): Bitmap? = withContext(Dispatchers.IO) {
-    if (imageUrl.isBlank()) return@withContext null
-    val connection = (URL(imageUrl).openConnection() as HttpURLConnection).apply {
-        connectTimeout = 4_000
-        readTimeout = 4_000
-        instanceFollowRedirects = true
-    }
-    try {
-        if (connection.responseCode !in 200..299) return@withContext null
-        connection.inputStream.use { input ->
-            BitmapFactory.decodeStream(input)
-        }
-    } catch (_: Throwable) {
-        null
-    } finally {
-        connection.disconnect()
-    }
-}
-
-private fun CommercialAd.imageContentScale(): ContentScale {
-    return when (imageFit.lowercase(Locale.US)) {
-        "cover" -> ContentScale.Crop
-        "fill" -> ContentScale.FillBounds
-        else -> ContentScale.Fit
-    }
-}
-
-@Composable
-private fun DialogCloseButton(
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Box(
-        modifier = modifier
-            .size(40.dp)
-            .clickable(onClick = onClick),
-        contentAlignment = Alignment.Center,
-    ) {
-        Box(
-            modifier = Modifier
-                .size(30.dp)
-                .background(
-                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.82f),
-                    shape = RoundedCornerShape(15.dp),
-                ),
-            contentAlignment = Alignment.Center,
-        ) {
-            Icon(
-                imageVector = Icons.Rounded.Close,
-                contentDescription = stringResource(R.string.action_close),
-                modifier = Modifier.size(18.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
-}
-
-@Composable
-private fun CommercialAdDialog(
-    ad: CommercialAd,
-    onOpen: () -> Unit,
-    onDismiss: () -> Unit,
-) {
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
-    ) {
-        Card(
-            modifier = Modifier.fillMaxWidth(0.96f),
-            shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        ) {
-            Column(
-                modifier = Modifier.padding(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                if (ad.imageUrl.isNotBlank()) {
-                    val imageModifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 640.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .then(if (ad.actionUrl.isNotBlank()) Modifier.clickable(onClick = onOpen) else Modifier)
-                    Box {
-                        RemoteAdImage(
-                            ad = ad,
-                            modifier = imageModifier,
-                        )
-                        DialogCloseButton(
-                            onClick = onDismiss,
-                            modifier = Modifier
-                                .align(Alignment.TopEnd)
-                                .padding(6.dp),
-                        )
-                    }
-                } else {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                    ) {
-                        DialogCloseButton(onClick = onDismiss)
-                    }
-                }
-                if (ad.title.isNotBlank() || ad.body.isNotBlank()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        if (ad.title.isNotBlank()) {
-                            Text(ad.title, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-                        }
-                        if (ad.body.isNotBlank()) {
-                            Text(ad.body, fontSize = 12.sp, color = MaterialTheme.colorScheme.outline)
-                        }
-                    }
-                }
-                Text(
-                    text = stringResource(R.string.home_ad_disclosure),
-                    fontSize = 12.sp,
-                    lineHeight = 17.sp,
-                    color = MaterialTheme.colorScheme.outline,
-                )
-            }
-        }
-    }
-}
-
-@SuppressLint("SetJavaScriptEnabled")
-@Composable
-private fun SupportPaymentDialog(
-    url: String,
-    onCancelPendingOrder: (String) -> Unit,
-    onDismiss: (String?) -> Unit,
-) {
-    val dialogHeight = (LocalConfiguration.current.screenHeightDp.dp * 0.88f).coerceAtMost(720.dp)
-    var currentOrderId by remember(url) { mutableStateOf<String?>(null) }
-    var dismissed by remember(url) { mutableStateOf(false) }
-    fun dismissFromDodopay(paymentProof: String?) {
-        if (dismissed) return
-        dismissed = true
-        onDismiss(paymentProof)
-    }
-    fun dismissByUser() {
-        if (dismissed) return
-        dismissed = true
-        currentOrderId?.let(onCancelPendingOrder)
-        onDismiss(null)
-    }
-    Dialog(
-        onDismissRequest = { dismissByUser() },
-        properties = DialogProperties(usePlatformDefaultWidth = false),
-    ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth(0.96f)
-                .height(dialogHeight),
-            shape = RoundedCornerShape(18.dp),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(start = 8.dp, top = 6.dp, end = 8.dp, bottom = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        text = stringResource(R.string.support_payment_page_title),
-                        modifier = Modifier.padding(start = 6.dp),
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                    )
-                    DialogCloseButton(onClick = { dismissByUser() })
-                }
-                AndroidView(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .clip(RoundedCornerShape(12.dp)),
-                    factory = { context ->
-                        WebView(context).apply {
-                            webViewClient = object : WebViewClient() {
-                                override fun onPageStarted(
-                                    view: WebView?,
-                                    url: String?,
-                                    favicon: Bitmap?,
-                                ) {
-                                    url?.let { nextUrl ->
-                                        SupportRules.extractDodopayPayOrderId(nextUrl)?.let { orderId ->
-                                            currentOrderId = orderId
-                                        }
-                                    }
-                                }
-
-                                override fun shouldOverrideUrlLoading(
-                                    view: WebView?,
-                                    request: WebResourceRequest?,
-                                ): Boolean {
-                                    val nextUrl = request?.url?.toString().orEmpty()
-                                    SupportRules.extractDodopayPayOrderId(nextUrl)?.let { orderId ->
-                                        currentOrderId = orderId
-                                    }
-                                    if (SupportRules.isDodopayCheckoutCloseUrl(nextUrl)) {
-                                        dismissFromDodopay(SupportRules.extractDodopayPaymentProof(nextUrl))
-                                        return true
-                                    }
-                                    return false
-                                }
-                            }
-                            settings.javaScriptEnabled = true
-                            settings.domStorageEnabled = true
-                            settings.loadWithOverviewMode = true
-                            settings.useWideViewPort = true
-                            loadUrl(url)
-                        }
-                    },
-                    update = {},
-                )
             }
         }
     }
@@ -3003,12 +2166,13 @@ private fun SimpleMessageCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
-            .padding(bottom = 16.dp)
+            .padding(bottom = 16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(title, style = MaterialTheme.typography.titleSmall)
             Spacer(modifier = Modifier.height(4.dp))
-            Text(body, fontSize = 12.sp, color = MaterialTheme.colorScheme.outline)
+            Text(body, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
         }
     }
 }
@@ -3022,8 +2186,8 @@ private fun KeyValueRow(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Text(label, modifier = Modifier.width(82.dp), fontSize = 12.sp, color = MaterialTheme.colorScheme.outline)
-        Text(value.ifBlank { "-" }, modifier = Modifier.weight(1f), fontSize = 12.sp)
+        Text(label, modifier = Modifier.width(82.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+        Text(value.ifBlank { "-" }, modifier = Modifier.weight(1f), style = MaterialTheme.typography.bodySmall)
     }
 }
 
@@ -3042,8 +2206,7 @@ private fun backupSubtitle(backup: ConfigBackupSnapshot): String {
 }
 
 /**
- *系统信息卡片
- * 显示软件版本、Android 版本、Shizuku 状态等。
+ * 关于页面
  */
 @Composable
 fun SystemInfoCard(
@@ -3057,189 +2220,212 @@ fun SystemInfoCard(
     onCheckUpdate: () -> Unit,
     onLogcatClick: () -> Unit,
     onIssueClick: () -> Unit,
-    onDonateClick: () -> Unit,
-    showDonateButton: Boolean = true,
 ) {
     val uriHandler = LocalUriHandler.current
-    val shizukuStatusText = when (shizukuStatus) {
-        ShizukuStatus.CHECKING -> stringResource(R.string.shizuku_checking)
-        ShizukuStatus.NOT_RUNNING -> stringResource(R.string.shizuku_not_running)
-        ShizukuStatus.NO_PERMISSION -> stringResource(R.string.shizuku_no_permission)
-        ShizukuStatus.READY -> stringResource(R.string.shizuku_ready)
-        else -> ""
-    }
-    val shizukuStatusColor = when (shizukuStatus) {
-        ShizukuStatus.NOT_RUNNING -> MaterialTheme.colorScheme.error
-        ShizukuStatus.NO_PERMISSION -> MaterialTheme.colorScheme.tertiary
-        else -> Color(0xFF16A34A)
+
+    // Brand Header
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(top = 16.dp, bottom = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Image(
+            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+            contentDescription = null,
+            modifier = Modifier.size(72.dp),
+            contentScale = ContentScale.Fit
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = stringResource(R.string.brand_name),
+            style = MaterialTheme.typography.titleLarge,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Text(
+            text = stringResource(R.string.brand_subtitle),
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.outline,
+        )
+        val versionText = buildAnnotatedString {
+            append(toDisplayVersion(systemInfo.appVersionName))
+            if (hasUpdateAvailable && !latestAvailableVersion.isNullOrBlank()) {
+                append(" → ")
+                withStyle(SpanStyle(color = MaterialTheme.colorScheme.tertiary, fontWeight = FontWeight.SemiBold)) {
+                    append(toDisplayVersion(latestAvailableVersion))
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(4.dp))
+        Text(
+            text = versionText,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.outline,
+        )
     }
 
+    // Device Info Card
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            BrandHeader()
-            Spacer(modifier = Modifier.height(12.dp))
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            AboutInfoRow(
+                label = stringResource(R.string.device_model, "").trimEnd(),
+                value = systemInfo.deviceModel,
+            )
+            AboutInfoRow(
+                label = stringResource(R.string.android_version, "").trimEnd(),
+                value = systemInfo.androidVersion,
+            )
+            AboutInfoRow(
+                label = stringResource(R.string.security_patch_version, "").trimEnd(),
+                value = systemInfo.securityPatchVersion,
+            )
+            val shizukuStatusText = when (shizukuStatus) {
+                ShizukuStatus.CHECKING -> stringResource(R.string.shizuku_checking)
+                ShizukuStatus.NOT_RUNNING -> stringResource(R.string.shizuku_not_running)
+                ShizukuStatus.NO_PERMISSION -> stringResource(R.string.shizuku_no_permission)
+                ShizukuStatus.READY -> stringResource(R.string.shizuku_ready)
+                else -> ""
+            }
+            val shizukuColor = when (shizukuStatus) {
+                ShizukuStatus.NOT_RUNNING -> MaterialTheme.colorScheme.error
+                ShizukuStatus.NO_PERMISSION -> MaterialTheme.colorScheme.tertiary
+                else -> MaterialTheme.colorScheme.primary
+            }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    stringResource(id = R.string.system_info),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
+                    text = "Shizuku",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline,
+                    modifier = Modifier.width(90.dp),
                 )
-                Spacer(modifier = Modifier.weight(1F))
-                Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                    HeaderActionChip(
-                        icon = painterResource(R.drawable.ic_github),
-                        label = stringResource(R.string.action_repo),
-                        onClick = {
-                            uriHandler.openUri(REPO_URL)
-                        },
-                    )
-                    HeaderActionChip(
-                        icon = painterResource(R.drawable.ic_issue),
-                        label = stringResource(R.string.action_issue),
-                        onClick = onIssueClick,
-                    )
-                    HeaderActionChip(
-                        icon = painterResource(
-                            if (hasUpdateAvailable) {
-                                R.drawable.ic_update_available
-                            } else {
-                                R.drawable.ic_update
-                            }
-                        ),
-                        label = stringResource(
-                            if (hasUpdateAvailable) {
-                                R.string.action_update_available
-                            } else {
-                                R.string.action_update
-                            }
-                        ),
-                        enabled = !checkingUpdate,
-                        onClick = onCheckUpdate,
-                    )
-                    HeaderActionChip(
-                        icon = painterResource(R.drawable.ic_log),
-                        label = stringResource(R.string.action_logcat),
-                        onClick = onLogcatClick,
-                    )
-                }
-            }
-            val versionAnnotated = buildAnnotatedString {
-                append(stringResource(R.string.current_version, toDisplayVersion(systemInfo.appVersionName)))
-                if (hasUpdateAvailable && !latestAvailableVersion.isNullOrBlank()) {
-                    append(" · ")
-                    withStyle(
-                        SpanStyle(
-                            color = Color(0xFF16A34A),
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    ) {
-                        append(
-                            stringResource(
-                                R.string.update_available_inline,
-                                toDisplayVersion(latestAvailableVersion)
-                            )
-                        )
-                    }
-                }
-            }
-            Text(text = versionAnnotated, fontSize = 14.sp)
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                stringResource(R.string.device_model, systemInfo.deviceModel),
-                fontSize = 14.sp,
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                stringResource(R.string.android_version, systemInfo.androidVersion),
-                fontSize = 14.sp,
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                stringResource(R.string.security_patch_version, systemInfo.securityPatchVersion),
-                fontSize = 14.sp,
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
                 Text(
+                    text = shizukuStatusText,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = shizukuColor,
                     modifier = Modifier.weight(1f),
-                    text = stringResource(R.string.shizuku_status, shizukuStatusText),
-                    fontSize = 14.sp,
-                    color = shizukuStatusColor
                 )
-                FeatureActionChip(
-                    icon = Icons.Rounded.Cached,
-                    label = stringResource(id = R.string.refresh_permission),
-                    onClick = onRefresh,
-                )
+                IconButton(onClick = onRefresh, modifier = Modifier.size(32.dp)) {
+                    Icon(
+                        imageVector = Icons.Rounded.Cached,
+                        contentDescription = stringResource(R.string.refresh_permission),
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
             }
             if (shizukuStatus == ShizukuStatus.NO_PERMISSION) {
-                Spacer(modifier = Modifier.height(8.dp))
-                Button(onClick = onRequestShizukuPermission) {
-                    Text(text = stringResource(id = R.string.request_permission))
-                }
-            }
-            if (showDonateButton) {
-                Spacer(modifier = Modifier.height(8.dp))
-                HorizontalDivider(thickness = 0.5.dp)
-                Spacer(modifier = Modifier.height(8.dp))
                 Button(
-                    onClick = onDonateClick,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(44.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer
-                    )
+                    onClick = onRequestShizukuPermission,
+                    modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text(
-                        text = stringResource(R.string.donation_action),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    Text(stringResource(R.string.request_permission))
                 }
             }
+        }
+    }
+
+    // Actions Card
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
+    ) {
+        Column {
+            AboutActionItem(
+                icon = painterResource(R.drawable.ic_github),
+                label = stringResource(R.string.action_repo),
+                onClick = { uriHandler.openUri(REPO_URL) },
+            )
+            HorizontalDivider(thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
+            AboutActionItem(
+                icon = painterResource(R.drawable.ic_issue),
+                label = stringResource(R.string.action_issue),
+                onClick = onIssueClick,
+            )
+            HorizontalDivider(thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
+            AboutActionItem(
+                icon = painterResource(
+                    if (hasUpdateAvailable) R.drawable.ic_update_available else R.drawable.ic_update
+                ),
+                label = if (hasUpdateAvailable) {
+                    stringResource(R.string.action_update_available)
+                } else {
+                    stringResource(R.string.action_update)
+                },
+                enabled = !checkingUpdate,
+                onClick = onCheckUpdate,
+            )
+            HorizontalDivider(thickness = 0.5.dp, modifier = Modifier.padding(horizontal = 16.dp))
+            AboutActionItem(
+                icon = painterResource(R.drawable.ic_log),
+                label = stringResource(R.string.action_logcat),
+                onClick = onLogcatClick,
+            )
         }
     }
 }
 
 @Composable
-private fun BrandHeader() {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_launcher_foreground),
-            contentDescription = null,
-            modifier = Modifier.size(48.dp),
-            contentScale = ContentScale.Fit
+private fun AboutInfoRow(label: String, value: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.outline,
+            modifier = Modifier.width(90.dp),
         )
-        Column(
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
+}
+
+@Composable
+private fun AboutActionItem(
+    icon: Painter,
+    label: String,
+    enabled: Boolean = true,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(enabled = enabled, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Icon(
+            painter = icon,
+            contentDescription = label,
+            modifier = Modifier.size(20.dp),
+            tint = if (enabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline,
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.brand_name),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = stringResource(R.string.brand_subtitle),
-                fontSize = 12.sp,
-                color = MaterialTheme.colorScheme.outline
-            )
-        }
+        )
+        Icon(
+            imageVector = Icons.Rounded.ChevronRight,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+            tint = MaterialTheme.colorScheme.outline,
+        )
     }
 }
 
@@ -3257,17 +2443,16 @@ fun CaptivePortalFixCard(
             .padding(horizontal = 16.dp)
             .padding(bottom = 16.dp),
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = stringResource(R.string.captive_portal_fix_title),
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary,
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = stringResource(R.string.captive_portal_fix_desc),
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.outline,
             )
             Spacer(modifier = Modifier.height(10.dp))
@@ -3308,14 +2493,14 @@ fun CaptivePortalFixCard(
             Spacer(modifier = Modifier.height(6.dp))
             Text(
                 text = stringResource(statusTextRes),
-                fontSize = 11.sp,
+                style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.outline
             )
             if (!isReady) {
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = stringResource(R.string.captive_portal_fix_requires_shizuku),
-                    fontSize = 11.sp,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.outline
                 )
             }
@@ -3323,44 +2508,8 @@ fun CaptivePortalFixCard(
     }
 }
 
-@Composable
-private fun HeaderActionChip(
-    icon: Painter,
-    label: String,
-    enabled: Boolean = true,
-    onClick: () -> Unit,
-) {
-    val contentColor = if (enabled) {
-        MaterialTheme.colorScheme.primary
-    } else {
-        MaterialTheme.colorScheme.outline
-    }
-    Column(
-        modifier = Modifier
-            .width(42.dp)
-            .clickable(enabled = enabled, onClick = onClick)
-            .padding(vertical = 2.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            painter = icon,
-            contentDescription = label,
-            modifier = Modifier.size(16.dp),
-            tint = contentColor,
-        )
-        Text(
-            text = label,
-            fontSize = 9.sp,
-            maxLines = 1,
-            overflow = TextOverflow.Clip,
-            color = contentColor,
-        )
-    }
-}
-
 /**
- * SIM 卡选择卡片
- * 列出所有可用的 SIM 卡供用户选择。
+ * SIM 卡选择下拉菜单
  */
 @Composable
 fun SimCardSelectionCard(
@@ -3369,50 +2518,52 @@ fun SimCardSelectionCard(
     onSelectSim: (SimSelection) -> Unit,
     onRefreshSimList: () -> Unit,
 ) {
-    Card(
+    var expanded by remember { mutableStateOf(false) }
+    Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
+        ExposedDropdownMenuBox(
+            expanded = expanded,
+            onExpandedChange = { expanded = it },
+            modifier = Modifier.weight(1f),
+        ) {
+            OutlinedTextField(
+                value = selectedSim?.showTitle ?: "",
+                onValueChange = {},
+                readOnly = true,
+                singleLine = true,
+                label = { Text(stringResource(R.string.sim_card)) },
+                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                modifier = Modifier
+                    .menuAnchor(ExposedDropdownMenuAnchorType.PrimaryNotEditable)
+                    .fillMaxWidth(),
+                colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+            )
+            ExposedDropdownMenu(
+                expanded = expanded,
+                onDismissRequest = { expanded = false },
             ) {
-                Text(
-                    stringResource(id = R.string.sim_card),
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-                Spacer(modifier = Modifier.weight(1F))
-                FeatureActionChip(
-                    icon = Icons.Rounded.Cached,
-                    label = stringResource(R.string.refresh_short),
-                    onClick = onRefreshSimList,
-                )
-            }
-            CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
-                Column {
-                    allSimList.forEach { sim ->
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .heightIn(min = 36.dp)
-                                .selectable(
-                                    selected = (selectedSim == sim),
-                                    onClick = { onSelectSim(sim) }),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                modifier = Modifier.size(20.dp),
-                                selected = (selectedSim == sim),
-                                onClick = { onSelectSim(sim) })
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(sim.showTitle)
-                        }
-                    }
+                allSimList.forEach { sim ->
+                    DropdownMenuItem(
+                        text = { Text(sim.showTitle) },
+                        onClick = {
+                            onSelectSim(sim)
+                            expanded = false
+                        },
+                        contentPadding = ExposedDropdownMenuDefaults.ItemContentPadding,
+                    )
                 }
             }
+        }
+        IconButton(onClick = onRefreshSimList) {
+            Icon(
+                imageVector = Icons.Rounded.Cached,
+                contentDescription = stringResource(R.string.refresh_short),
+            )
         }
     }
 }
@@ -3444,9 +2595,11 @@ fun FeaturesCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
             var featureMenuExpanded by remember(isSelectAllSim, selectedSim?.subId) { mutableStateOf(false) }
             var showRestoreConfirmDialog by remember(isSelectAllSim, selectedSim?.subId) {
                 mutableStateOf(false)
@@ -3458,8 +2611,7 @@ fun FeaturesCard(
             ) {
                 Text(
                     text = stringResource(R.string.features_config),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
+                    style = MaterialTheme.typography.titleSmall,
                 )
                 if (!isSelectAllSim) {
                     Box {
@@ -3607,7 +2759,26 @@ fun FeaturesCard(
                     }
                 }
             }
+            var lastCategory = -1
             orderedFeatures.forEachIndexed { index, feature ->
+                val category = switchFeatureCategoryOrder(feature)
+                if (category != lastCategory) {
+                    lastCategory = category
+                    val sectionTitleRes = when (category) {
+                        0 -> R.string.feature_group_ims
+                        1 -> R.string.feature_group_network_display
+                        2 -> R.string.feature_group_compat
+                        else -> null
+                    }
+                    if (sectionTitleRes != null) {
+                        Text(
+                            text = stringResource(sectionTitleRes),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(top = if (index == 0) 0.dp else 12.dp, bottom = 4.dp),
+                        )
+                    }
+                }
                 val title = stringResource(feature.showTitleRes)
                 val description = stringResource(feature.showDescriptionRes)
                 when (feature.valueType) {
@@ -3680,7 +2851,10 @@ fun FeaturesCard(
                     }
                 }
                 if (index < orderedFeatures.lastIndex) {
-                    HorizontalDivider(thickness = 0.5.dp)
+                    val nextCategory = switchFeatureCategoryOrder(orderedFeatures[index + 1])
+                    if (nextCategory == category) {
+                        HorizontalDivider(thickness = 0.5.dp)
+                    }
                 }
             }
         }
@@ -3698,7 +2872,7 @@ private fun FeatureActionChip(
         label = {
             Text(
                 label,
-                fontSize = 12.sp,
+                style = MaterialTheme.typography.bodySmall,
             )
         },
         leadingIcon = {
@@ -3986,8 +3160,7 @@ fun CountryIsoFeatureItem(
                     label = {
                         Text(
                             title,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
+                            style = MaterialTheme.typography.titleSmall,
                         )
                     },
                     placeholder = {
@@ -4001,7 +3174,7 @@ fun CountryIsoFeatureItem(
                     supportingText = {
                         Text(
                             text = description,
-                            fontSize = 12.sp,
+                            style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.outline,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -4055,7 +3228,7 @@ fun CountryIsoFeatureItem(
                     selectedOptionKey = COUNTRY_ISO_OPTION_OTHER
                     customMccInput = sanitizeMccInput(raw)
                 },
-                label = { Text(stringResource(R.string.country_iso_mcc_label), fontSize = 14.sp) },
+                label = { Text(stringResource(R.string.country_iso_mcc_label), style = MaterialTheme.typography.bodyMedium) },
                 placeholder = { Text(stringResource(R.string.country_iso_mcc_placeholder)) },
                 singleLine = true,
                 maxLines = 1,
@@ -4079,7 +3252,7 @@ fun CountryIsoFeatureItem(
                     selectedOptionKey = COUNTRY_ISO_OPTION_OTHER
                     customIsoInput = sanitizeCountryIsoInput(raw)
                 },
-                label = { Text(stringResource(R.string.country_iso_iso_label), fontSize = 14.sp) },
+                label = { Text(stringResource(R.string.country_iso_iso_label), style = MaterialTheme.typography.bodyMedium) },
                 placeholder = { Text(stringResource(R.string.country_iso_custom_placeholder)) },
                 singleLine = true,
                 maxLines = 1,
@@ -4092,14 +3265,14 @@ fun CountryIsoFeatureItem(
                 value = normalizedMnc,
                 onValueChange = {},
                 readOnly = true,
-                label = { Text(stringResource(R.string.country_iso_mnc_label), fontSize = 14.sp) },
+                label = { Text(stringResource(R.string.country_iso_mnc_label), style = MaterialTheme.typography.bodyMedium) },
                 placeholder = { Text(stringResource(R.string.country_iso_mnc_placeholder)) },
                 singleLine = true,
                 maxLines = 1,
                 supportingText = {
                     Text(
                         text = stringResource(R.string.country_iso_mnc_desc),
-                        fontSize = 12.sp,
+                        style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.outline,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -4148,14 +3321,13 @@ fun StringFeatureItem(
             label = {
                 Text(
                     title,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleSmall,
                 )
             },
             supportingText = {
                 Text(
                     text = description,
-                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.outline
                 )
             },
@@ -4191,11 +3363,10 @@ fun BooleanFeatureItem(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 title,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.titleSmall,
             )
             Spacer(modifier = Modifier.height(4.dp))
-            Text(description, fontSize = 13.sp, color = MaterialTheme.colorScheme.outline)
+            Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
         }
         if (trailingContent != null) {
             trailingContent()
@@ -4219,8 +3390,7 @@ private fun FeatureStatusPill(label: String) {
     ) {
         Text(
             text = label,
-            fontSize = 12.sp,
-            fontWeight = FontWeight.SemiBold,
+            style = MaterialTheme.typography.labelMedium,
             color = MaterialTheme.colorScheme.onSecondaryContainer,
         )
     }
@@ -4233,7 +3403,9 @@ private fun IssueReportHintCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp),
+            .padding(horizontal = 16.dp)
+            .padding(bottom = 16.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow),
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -4243,13 +3415,12 @@ private fun IssueReportHintCard(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = stringResource(R.string.issue_failure_hint_title),
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.titleSmall,
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = stringResource(R.string.issue_failure_hint_desc),
-                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.outline
                 )
             }
